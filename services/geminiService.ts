@@ -1,13 +1,22 @@
-
 import { GoogleGenAI } from "@google/genai";
 
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable is not set.");
+// Cette ligne est LA SEULE manière sécurisée de gérer votre clé API.
+// Vercel va "injecter" la vraie clé ici au moment de la construction du site.
+// La clé ne sera JAMAIS visible dans le code source de votre page web.
+const API_KEY = process.env.API_KEY;
+
+if (!API_KEY) {
+    console.error("ERREUR CRITIQUE: La clé API Gemini n'est pas configurée dans les variables d'environnement de Vercel.");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Initialise l'API uniquement si la clé existe
+const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
 
 export async function findInDocument(document: string, query: string): Promise<string> {
+  if (!ai) {
+      return "Erreur de configuration : Le service AI n'est pas initialisé. La clé API est probablement manquante sur le serveur. Veuillez contacter l'administrateur.";
+  }
+
   const model = 'gemini-2.5-flash';
 
   const prompt = `
